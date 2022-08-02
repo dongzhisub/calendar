@@ -52,6 +52,12 @@
 		</template>
 
 		<template v-if="!deleteTimeout" slot="actions">
+			<ActionButton @click.prevent.stop="showEditModal">
+				<template #icon>
+					<Pencil :size="20" decorative />
+				</template>
+				{{ $t('calendar', 'Edit calendar') }}
+			</ActionButton>
 			<ActionButton v-if="showRenameLabel"
 				@click.prevent.stop="openRenameInput">
 				<template #icon>
@@ -511,6 +517,12 @@ export default {
 				this.showColorSaving = false
 			}
 		},
+
+		showEditModal() {
+			this.$store.commit('showEditCalendarModal', {
+				calendarId: this.calendar.id,
+			})
+		}
 	},
 }
 </script>

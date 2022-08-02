@@ -57,6 +57,7 @@ const state = {
 	deletedCalendarObjects: [],
 	calendarsById: {},
 	initialCalendarsLoaded: false,
+	editCalendarModal: undefined, 
 }
 
 const mutations = {
@@ -378,6 +379,16 @@ const mutations = {
 	markCalendarAsNotLoading(state, { calendar }) {
 		state.calendarsById[calendar.id].loading = false
 	},
+
+	showEditCalendarModal(state, { calendarId }) {
+		state.editCalendarModal = {
+			calendarId,
+		}
+	},
+
+	hideEditCalendarModal(state) {
+		state.editCalendarModal = undefined
+	}
 }
 
 const getters = {
@@ -555,6 +566,8 @@ const getters = {
 			return true
 		})
 	},
+
+	editCalendarModal: (state) => state.editCalendarModal,
 }
 
 const actions = {
