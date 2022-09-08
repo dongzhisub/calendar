@@ -33,13 +33,16 @@ use OCA\Calendar\Service\JSDataService;
 use OCA\DAV\CalDAV\CalDavBackend;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\Dashboard\IAPIWidget;
+use OCP\Dashboard\IButtonWidget;
+use OCP\Dashboard\IIconWidget;
+use OCP\Dashboard\Model\WidgetButton;
 use OCP\Dashboard\Model\WidgetItem;
 use OCP\IDateTimeFormatter;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Util;
 
-class CalendarWidget implements IAPIWidget {
+class CalendarWidget implements IAPIWidget, IButtonWidget, IIconWidget {
 	private IL10N $l10n;
 	private IInitialState $initialStateService;
 	private JSDataService $dataService;
@@ -108,6 +111,15 @@ class CalendarWidget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	public function getIconUrl(): string {
+		return $this->urlGenerator->getAbsoluteURL(
+			$this->urlGenerator->imagePath(Application::APP_ID, 'calendar-dark.svg')
+		);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
 	public function load(): void {
 		Util::addScript(Application::APP_ID, 'calendar-dashboard');
 		Util::addStyle(Application::APP_ID, 'dashboard');
@@ -141,7 +153,7 @@ class CalendarWidget implements IAPIWidget {
 		}
 		// for each event, is there a simple way to get the first occurrence in the future?
 
-		return array_map(function(array $event) {
+		return array_map(function (array $event) {
 			/** @var DateTimeImmutable $startDate */
 			$startDate = $event['objects'][0]['DTSTART'][0];
 			return new WidgetItem(
@@ -158,5 +170,20 @@ class CalendarWidget implements IAPIWidget {
 				(string) $startDate->getTimestamp(),
 			);
 		}, $events);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getWidgetButtons(string $userId): array {
+		return [
+			new WidgetButton(
+				WidgetButton::TYPE_MORE,
+				$this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->linkToRoute(Application::APP_ID . '.view.index')
+				),
+				$this->l10n->t('More events')
+			),
+		];
 	}
 }
