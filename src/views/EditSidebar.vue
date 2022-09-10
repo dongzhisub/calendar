@@ -170,6 +170,11 @@
 					:is-editing-master-item="isEditingMasterItem"
 					:is-recurrence-exception="isRecurrenceException"
 					@force-this-and-all-future="forceModifyingFuture" />
+
+				<h3>{{ $t('calendar', 'Resources') }}</h3>
+				<ResourceList v-if="!isLoading"
+					:calendar-object-instance="calendarObjectInstance"
+					:is-read-only="isReadOnly" />
 			</div>
 			<SaveButtons v-if="showSaveButtons"
 				class="app-sidebar-tab__buttons"
@@ -201,17 +206,24 @@
 				@save-this-and-all-future="saveAndLeave(true)" />
 		</AppSidebarTab>
 		<AppSidebarTab v-if="!isLoading && !isError"
-			id="app-sidebar-tab-resources"
+			id="app-sidebar-tab-media"
 			class="app-sidebar-tab"
-			:name="$t('calendar', 'Resources')"
+			:name="$t('calendar', 'Media')"
 			:order="2">
 			<template #icon>
-				<MapMarker :size="20" decorative />
+				<FolderMultipleImage :size="20" decorative />
 			</template>
 			<div class="app-sidebar-tab__content">
-				<ResourceList v-if="!isLoading"
-					:calendar-object-instance="calendarObjectInstance"
-					:is-read-only="isReadOnly" />
+				<!-- FIXME provide integer calendar id -->
+				<RelatedResourcesPanel provider-id="calendar"
+					:item-id="calendarId"
+					@has-resources="value => hasRelatedResources = value" />
+				<EmptyContent v-if="!hasRelatedResources"
+					:title="$t('calendar', 'No media')">
+					<template #icon>
+						<FolderMultipleImage :size="20" decorative />
+					</template>
+				</EmptyContent>
 			</div>
 			<SaveButtons v-if="showSaveButtons"
 				class="app-sidebar-tab__buttons"
@@ -229,6 +241,7 @@ import AppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import ActionLink from '@nextcloud/vue/dist/Components/NcActionLink.js'
 import ActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import EmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import RelatedResourcesPanel from '@nextcloud/vue/dist/Components/NcRelatedResourcesPanel.js'
 
 import { mapState } from 'vuex'
 
@@ -257,6 +270,7 @@ import Download from 'vue-material-design-icons/Download.vue'
 import ContentDuplicate from 'vue-material-design-icons/ContentDuplicate.vue'
 import InformationOutline from 'vue-material-design-icons/InformationOutline.vue'
 import MapMarker from 'vue-material-design-icons/MapMarker.vue'
+import FolderMultipleImage from 'vue-material-design-icons/FolderMultipleImage.vue'
 
 export default {
 	name: 'EditSidebar',
@@ -286,10 +300,17 @@ export default {
 		InformationOutline,
 		MapMarker,
 		InvitationResponseButtons,
+		RelatedResourcesPanel,
+		FolderMultipleImage,
 	},
 	mixins: [
 		EditorMixin,
 	],
+	data() {
+		return {
+			hasRelatedResources: false,
+		}
+	},
 	computed: {
 		...mapState({
 			locale: (state) => state.settings.momentLocale,
@@ -412,5 +433,8 @@ export default {
 <style lang="scss" scoped>
 ::v-deep .app-sidebar-header__description {
 	flex-direction: column;
+}
+h3 {
+	font-weight: bold;
 }
 </style>
