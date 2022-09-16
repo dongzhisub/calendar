@@ -162,7 +162,7 @@ import Email from 'vue-material-design-icons/Email.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 
 export default {
-	name: 'CalendarListItemSharingPublishItem',
+	name: 'PublishCalendar',
 	components: {
 		NcActions,
 		NcActionButton,

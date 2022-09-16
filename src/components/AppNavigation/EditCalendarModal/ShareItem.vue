@@ -64,7 +64,7 @@ import {
 import { randomId } from '../../../utils/randomId'
 
 export default {
-	name: 'CalendarListItemSharingShareItem',
+	name: 'ShareItem',
 	components: {
 		NcActions,
 		NcActionButton,

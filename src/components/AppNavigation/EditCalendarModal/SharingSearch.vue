@@ -53,7 +53,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { urldecode } from '../../../utils/url.js'
 
 export default {
-	name: 'CalendarListItemSharingSearch',
+	name: 'SharingSearch',
 	components: {
 		Multiselect,
 	},

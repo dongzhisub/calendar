@@ -46,9 +46,9 @@
 			</h2>
 
 			<div class="edit-calendar-modal__sharing">
-				<CalendarListItemSharingPublishItem :calendar="calendar" />
-				<CalendarListItemSharingSearch :calendar="calendar" />
-				<CalendarListItemSharingShareItem v-for="sharee in calendar.shares"
+				<PublishCalendar :calendar="calendar" />
+				<SharingSearch :calendar="calendar" />
+				<ShareItem v-for="sharee in calendar.shares"
 					:key="sharee.uri"
 					:sharee="sharee"
 					:calendar="calendar" />
@@ -67,12 +67,9 @@
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import NcColorPicker from '@nextcloud/vue/dist/Components/NcColorPicker'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
-import CalendarListItemSharingPublishItem
-	from '../AppNavigation/CalendarList/CalendarListItemSharingPublishItem'
-import CalendarListItemSharingSearch
-	from '../AppNavigation/CalendarList/CalendarListItemSharingSearch'
-import CalendarListItemSharingShareItem
-	from '../AppNavigation/CalendarList/CalendarListItemSharingShareItem'
+import PublishCalendar from './EditCalendarModal/PublishCalendar'
+import SharingSearch from './EditCalendarModal/SharingSearch'
+import ShareItem from './EditCalendarModal/ShareItem'
 import { mapGetters } from 'vuex'
 import { randomId } from '../../utils/randomId'
 
@@ -82,9 +79,9 @@ export default {
 		NcModal,
 		NcColorPicker,
 		NcButton,
-		CalendarListItemSharingSearch,
-		CalendarListItemSharingPublishItem,
-		CalendarListItemSharingShareItem,
+		PublishCalendar,
+		SharingSearch,
+		ShareItem,
 	},
 	props: {
 	},
