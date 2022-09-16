@@ -1,6 +1,8 @@
 <!--
   - @copyright Copyright (c) 2019 Georg Ehrke <oc.list@georgehrke.com>
+  -
   - @author Georg Ehrke <oc.list@georgehrke.com>
+  - @author Richard Steinmetz <richard@steinmetz.cloud>
   -
   - @license AGPL-3.0-or-later
   -
@@ -20,56 +22,53 @@
   -->
 
 <template>
-	<AppNavigationItem :title="sharee.displayName">
-		<template slot="icon">
-			<AccountMultiple v-if="sharee.isGroup"
-				:size="18"
-				decorative
-				class="avatar" />
-			<IconCircle v-else-if="sharee.isCircle" />
-			<Avatar v-else :user="sharee.id" :display-name="sharee.displayName" />
-		</template>
+	<div class="share-item">
+		<AccountMultiple v-if="sharee.isGroup" :size="20" />
+		<IconCircle v-else-if="sharee.isCircle" />
+		<NcAvatar v-else :user="sharee.id" :display-name="sharee.displayName" />
 
-		<template slot="counter">
-			<ActionCheckbox :disabled="updatingSharee"
-				:checked="sharee.writeable"
-				@update:checked="updatePermission">
-				{{ $t('calendar', 'can edit') }}
-			</ActionCheckbox>
-		</template>
+		<p class="share-item__label">
+			{{ sharee.displayName }}
+		</p>
 
-		<template slot="actions">
-			<ActionButton :disabled="updatingSharee"
+		<input :id="`${id}-can-edit`"
+			:disabled="updatingSharee"
+			:checked="sharee.writeable"
+			type="checkbox"
+			class="checkbox"
+			@update:checked="updatePermission">
+		<label :for="`${id}-can-edit`">{{ $t('calendar', 'can edit') }}</label>
+
+		<NcActions>
+			<NcActionButton :disabled="updatingSharee"
 				@click.prevent.stop="unshare">
 				<template #icon>
 					<Delete :size="20" decorative />
 				</template>
 				{{ $t('calendar', 'Unshare with {displayName}', { displayName: sharee.displayName }) }}
-			</ActionButton>
-		</template>
-	</AppNavigationItem>
+			</NcActionButton>
+		</NcActions>
+	</div>
 </template>
 
 <script>
-import ActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import ActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
-import AppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
-import Avatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import {
-	showInfo,
-} from '@nextcloud/dialogs'
-
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import AccountMultiple from 'vue-material-design-icons/AccountMultiple.vue'
 import IconCircle from '../../Icons/IconCircles.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import {
+	showInfo,
+} from '@nextcloud/dialogs'
+import { randomId } from '../../../utils/randomId'
 
 export default {
 	name: 'CalendarListItemSharingShareItem',
 	components: {
-		ActionButton,
-		ActionCheckbox,
-		AppNavigationItem,
-		Avatar,
+		NcActions,
+		NcActionButton,
+		NcAvatar,
 	  IconCircle,
 		AccountMultiple,
 		Delete,
@@ -86,6 +85,7 @@ export default {
 	},
 	data() {
 		return {
+			id: randomId(),
 			updatingSharee: false,
 		}
 	},
@@ -138,3 +138,19 @@ export default {
 	},
 }
 </script>
+
+<style lang="scss" scoped>
+.share-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+
+	&__avatar {
+
+	}
+
+	&__label {
+		flex: 1 auto;
+	}
+}
+</style>

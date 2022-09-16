@@ -1,6 +1,8 @@
 <!--
   - @copyright Copyright (c) 2019 Georg Ehrke <oc.list@georgehrke.com>
+  -
   - @author Georg Ehrke <oc.list@georgehrke.com>
+  - @author Richard Steinmetz <richard@steinmetz.cloud>
   -
   - @license AGPL-3.0-or-later
   -
@@ -26,7 +28,7 @@
 		:title="calendar.displayName || $t('calendar', 'Untitled calendar')"
 		:class="{deleted: !!deleteTimeout, disabled: !calendar.enabled, 'open-sharing': shareMenuOpen}"
 		@click.prevent.stop="toggleEnabled">
-		<template slot="icon">
+		<template #icon>
 			<CheckboxBlankCircle v-if="calendar.enabled"
 				:size="20"
 				:fill-color="calendar.color" />
@@ -35,131 +37,103 @@
 				:fill-color="calendar.color" />
 		</template>
 
-		<template v-if="!deleteTimeout" slot="counter">
-			<Actions v-if="showSharingIcon" class="sharing">
-				<ActionButton @click="toggleShareMenu">
+		<template #actions>
+			<template v-if="!deleteTimeout">
+				<ActionButton @click.prevent.stop="showEditModal">
 					<template #icon>
-						<LinkVariant v-if="isPublished" :size="20" decorative />
-						<ShareVariant v-else
-							:size="20"
-							decorative
-							:class="{share: !isShared}" />
+						<Pencil :size="20" decorative />
 					</template>
+					{{ $t('calendar', 'Edit calendar') }}
 				</ActionButton>
-			</Actions>
-			<Avatar v-if="isSharedWithMe && loadedOwnerPrincipal" :user="ownerUserId" :display-name="ownerDisplayname" />
-			<div v-if="isSharedWithMe && !loadedOwnerPrincipal" class="icon icon-loading" />
-		</template>
+				<ActionButton v-if="showRenameLabel"
+					@click.prevent.stop="openRenameInput">
+					<template #icon>
+						<Pencil :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Edit name') }}
+				</ActionButton>
+				<ActionInput v-if="showRenameInput"
+					:value="calendar.displayName"
+					@submit.prevent.stop="saveRenameInput">
+					<template #icon>
+						<Pencil :size="20" decorative />
+					</template>
+				</ActionInput>
+				<ActionText v-if="showRenameSaving"
+					icon="icon-loading-small">
+					<!-- eslint-disable-next-line no-irregular-whitespace -->
+					{{ $t('calendar', 'Saving name …') }}
+				</ActionText>
+				<ActionButton v-if="showColorLabel"
+					@click.prevent.stop="openColorInput">
+					<template #icon>
+						<Pencil :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Edit color') }}
+				</ActionButton>
+				<ActionInput v-if="showColorInput"
+					:value="calendar.color"
+					type="color"
+					@submit.prevent.stop="saveColorInput">
+					<template #icon>
+						<Pencil :size="20" decorative />
+					</template>
+				</ActionInput>
+				<ActionText v-if="showColorSaving"
+					icon="icon-loading-small">
+					<!-- eslint-disable-next-line no-irregular-whitespace -->
+					{{ $t('calendar', 'Saving color …') }}
+				</ActionText>
+				<ActionButton @click.stop.prevent="copyLink">
+					<template #icon>
+						<LinkVariant :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Copy private link') }}
+				</ActionButton>
+				<ActionLink target="_blank"
+					:href="downloadUrl">
+					<template #icon>
+						<Download :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Export') }}
+				</ActionLink>
+				<ActionButton v-if="calendar.isSharedWithMe"
+					@click.prevent.stop="deleteCalendar">
+					<template #icon>
+						<Close :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Unshare from me') }}
+				</ActionButton>
+				<ActionButton v-if="!calendar.isSharedWithMe"
+					@click.prevent.stop="deleteCalendar">
+					<template #icon>
+						<Delete :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Delete') }}
+				</ActionButton>
+			</template>
 
-		<template v-if="!deleteTimeout" slot="actions">
-			<ActionButton @click.prevent.stop="showEditModal">
-				<template #icon>
-					<Pencil :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Edit calendar') }}
-			</ActionButton>
-			<ActionButton v-if="showRenameLabel"
-				@click.prevent.stop="openRenameInput">
-				<template #icon>
-					<Pencil :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Edit name') }}
-			</ActionButton>
-			<ActionInput v-if="showRenameInput"
-				:value="calendar.displayName"
-				@submit.prevent.stop="saveRenameInput">
-				<template #icon>
-					<Pencil :size="20" decorative />
-				</template>
-			</ActionInput>
-			<ActionText v-if="showRenameSaving"
-				icon="icon-loading-small">
-				<!-- eslint-disable-next-line no-irregular-whitespace -->
-				{{ $t('calendar', 'Saving name …') }}
-			</ActionText>
-			<ActionButton v-if="showColorLabel"
-				@click.prevent.stop="openColorInput">
-				<template #icon>
-					<Pencil :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Edit color') }}
-			</ActionButton>
-			<ActionInput v-if="showColorInput"
-				:value="calendar.color"
-				type="color"
-				@submit.prevent.stop="saveColorInput">
-				<template #icon>
-					<Pencil :size="20" decorative />
-				</template>
-			</ActionInput>
-			<ActionText v-if="showColorSaving"
-				icon="icon-loading-small">
-				<!-- eslint-disable-next-line no-irregular-whitespace -->
-				{{ $t('calendar', 'Saving color …') }}
-			</ActionText>
-			<ActionButton @click.stop.prevent="copyLink">
-				<template #icon>
-					<LinkVariant :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Copy private link') }}
-			</ActionButton>
-			<ActionLink target="_blank"
-				:href="downloadUrl">
-				<template #icon>
-					<Download :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Export') }}
-			</ActionLink>
-			<ActionButton v-if="calendar.isSharedWithMe"
-				@click.prevent.stop="deleteCalendar">
-				<template #icon>
-					<Close :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Unshare from me') }}
-			</ActionButton>
-			<ActionButton v-if="!calendar.isSharedWithMe"
-				@click.prevent.stop="deleteCalendar">
-				<template #icon>
-					<Delete :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Delete') }}
-			</ActionButton>
-		</template>
-
-		<template v-if="!!deleteTimeout" slot="actions">
-			<ActionButton v-if="calendar.isSharedWithMe"
-				@click.prevent.stop="cancelDeleteCalendar">
-				<template #icon>
-					<Undo :size="20" decorative />
-				</template>
-				{{ $n('calendar', 'Unsharing the calendar in {countdown} second', 'Unsharing the calendar in {countdown} seconds', countdown, { countdown }) }}
-			</ActionButton>
-			<ActionButton v-else
-				@click.prevent.stop="cancelDeleteCalendar">
-				<template #icon>
-					<Undo :size="20" decorative />
-				</template>
-				{{ $n('calendar', 'Deleting the calendar in {countdown} second', 'Deleting the calendar in {countdown} seconds', countdown, { countdown }) }}
-			</ActionButton>
-		</template>
-
-		<template v-if="!deleteTimeout">
-			<div v-show="shareMenuOpen" class="sharing-section">
-				<CalendarListItemSharingSearch v-if="calendar.canBeShared" :calendar="calendar" />
-				<CalendarListItemSharingPublishItem v-if="calendar.canBePublished" :calendar="calendar" />
-				<CalendarListItemSharingShareItem v-for="sharee in calendar.shares"
-					v-show="shareMenuOpen"
-					:key="sharee.uri"
-					:sharee="sharee"
-					:calendar="calendar" />
-			</div>
+			<template v-if="!!deleteTimeout">
+				<ActionButton v-if="calendar.isSharedWithMe"
+					@click.prevent.stop="cancelDeleteCalendar">
+					<template #icon>
+						<Undo :size="20" decorative />
+					</template>
+					{{ $n('calendar', 'Unsharing the calendar in {countdown} second', 'Unsharing the calendar in {countdown} seconds', countdown, { countdown }) }}
+				</ActionButton>
+				<ActionButton v-else
+					@click.prevent.stop="cancelDeleteCalendar">
+					<template #icon>
+						<Undo :size="20" decorative />
+					</template>
+					{{ $n('calendar', 'Deleting the calendar in {countdown} second', 'Deleting the calendar in {countdown} seconds', countdown, { countdown }) }}
+				</ActionButton>
+			</template>
 		</template>
 	</AppNavigationItem>
 </template>
 
 <script>
-import Avatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import Actions from '@nextcloud/vue/dist/Components/NcActions.js'
 import ActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import ActionInput from '@nextcloud/vue/dist/Components/NcActionInput.js'
 import ActionLink from '@nextcloud/vue/dist/Components/NcActionLink.js'
@@ -175,9 +149,6 @@ import {
 	generateRemoteUrl,
 } from '@nextcloud/router'
 
-import CalendarListItemSharingSearch from './CalendarListItemSharingSearch.vue'
-import CalendarListItemSharingPublishItem from './CalendarListItemSharingPublishItem.vue'
-import CalendarListItemSharingShareItem from './CalendarListItemSharingShareItem.vue'
 import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.vue'
 import CheckboxBlankCircleOutline from 'vue-material-design-icons/CheckboxBlankCircleOutline.vue'
 import Close from 'vue-material-design-icons/Close.vue'
@@ -185,22 +156,16 @@ import Delete from 'vue-material-design-icons/Delete.vue'
 import Download from 'vue-material-design-icons/Download.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
-import ShareVariant from 'vue-material-design-icons/ShareVariant.vue'
 import Undo from 'vue-material-design-icons/Undo.vue'
 
 export default {
 	name: 'CalendarListItem',
 	components: {
-		Avatar,
-		Actions,
 		ActionButton,
 		ActionInput,
 		ActionLink,
 		ActionText,
 		AppNavigationItem,
-		CalendarListItemSharingSearch,
-		CalendarListItemSharingPublishItem,
-		CalendarListItemSharingShareItem,
 		CheckboxBlankCircle,
 		CheckboxBlankCircleOutline,
 		Close,
@@ -208,7 +173,6 @@ export default {
 		Download,
 		LinkVariant,
 		Pencil,
-		ShareVariant,
 		Undo,
 	},
 	directives: {
@@ -522,7 +486,7 @@ export default {
 			this.$store.commit('showEditCalendarModal', {
 				calendarId: this.calendar.id,
 			})
-		}
+		},
 	},
 }
 </script>
