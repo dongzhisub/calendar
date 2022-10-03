@@ -23,7 +23,7 @@
 
 <template>
 	<div class="share-item">
-		<AccountMultiple v-if="sharee.isGroup" :size="20" />
+		<AccountMultiple v-if="sharee.isGroup" :size="20" class="share-item__group-icon" />
 		<IconCircle v-else-if="sharee.isCircle" />
 		<NcAvatar v-else :user="sharee.id" :display-name="sharee.displayName" />
 
@@ -145,8 +145,12 @@ export default {
 	align-items: center;
 	gap: 10px;
 
-	&__avatar {
-
+	&__group-icon {
+		width: 32px;
+		height: 32px;
+		border-radius: 16px;
+		color: white;
+		background-color: var(--color-text-maxcontrast);
 	}
 
 	&__label {

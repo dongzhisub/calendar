@@ -25,20 +25,15 @@
 		<div class="edit-calendar-modal">
 			<h2>{{ $t('calendar', 'Edit calendar') }}</h2>
 
-			<div class="edit-calendar-modal__name">
-				<label :for="calendarNameId">{{ $t('calendar', 'Name') }}</label>
-				<input :id="calendarNameId" v-model="calendarName" type="text">
-			</div>
-
-			<div class="edit-calendar-modal__color">
-				<label :for="colorPickerId">{{ $t('calendar', 'Color') }}</label>
-				<div class="edit-calendar-modal__color__picker">
+			<div class="edit-calendar-modal__name-and-color">
+				<div class="edit-calendar-modal__name-and-color__color">
 					<NcColorPicker v-model="calendarColor">
-						<input v-model="calendarColor"
-							class="edit-calendar-modal__color__picker__input"
-							:style="{'background-color': calendarColor}">
+						<div class="edit-calendar-modal__name-and-color__color__dot"
+							:style="{'background-color': calendarColor}" />
 					</NcColorPicker>
 				</div>
+
+				<input v-model="calendarName" class="edit-calendar-modal__name-and-color__name" type="text">
 			</div>
 
 			<h2 class="edit-calendar-modal__sharing-header">
@@ -46,8 +41,8 @@
 			</h2>
 
 			<div class="edit-calendar-modal__sharing">
-				<PublishCalendar :calendar="calendar" />
 				<SharingSearch :calendar="calendar" />
+				<PublishCalendar :calendar="calendar" />
 				<ShareItem v-for="sharee in calendar.shares"
 					:key="sharee.uri"
 					:sharee="sharee"
@@ -132,6 +127,25 @@ export default {
 	display: flex;
 	flex-direction: column;
 
+	&__name-and-color {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		margin-bottom: 10px;
+
+		&__color {
+			::v-deep &__dot {
+				width: 24px;
+				height: 24px;
+				border-radius: 12px;
+			}
+		}
+
+		&__name {
+			flex: 1 auto;
+		}
+	}
+
 	&__name {
 		display: flex;
 		flex-direction: column;
@@ -169,6 +183,8 @@ export default {
 	}
 
 	&__actions {
+		display: flex;
+		justify-content: end;
 		margin-top: 15px;
 	}
 }

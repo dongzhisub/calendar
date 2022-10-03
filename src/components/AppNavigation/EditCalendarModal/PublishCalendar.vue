@@ -23,115 +23,117 @@
 
 <template>
 	<div class="publish-calendar">
-		<p v-if="isPublished">
-			{{ $t('calendar', 'Calendar is published') }}
+		<div class="publish-calendar__icon">
+			<LinkVariant :size="20" />
+		</div>
+
+		<p class="publish-calendar__label">
+			{{ $t('calendar', 'Share link') }}
 		</p>
-		<NcButton v-else
-			:disabled="publishingCalendar"
-			@click="publishCalendar">
-			<template #icon>
-				<LinkVariant :size="20" />
-			</template>
-			<template v-if="publishingCalendar">
-				{{ $t('calendar', 'Publishing calendar') }}
-			</template>
-			<template v-else>
-				{{ $t('calendar', 'Publish calendar') }}
-			</template>
-		</NcButton>
 
-		<NcActions v-if="isPublished">
-			<NcActionButton @click.prevent.stop="copyPublicLink">
-				<template #icon>
-					<ClipboardArrowLeftOutline :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Copy public link') }}
-			</NcActionButton>
-		</NcActions>
+		<template v-if="isPublished">
+			<NcActions>
+				<NcActionButton @click.prevent.stop="copyPublicLink">
+					<template #icon>
+						<ClipboardArrowLeftOutline :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Copy public link') }}
+				</NcActionButton>
+			</NcActions>
 
-		<NcActions v-if="isPublished">
-			<NcActionButton v-if="showEMailLabel"
-				@click.prevent.stop="openEMailLinkInput">
-				<template #icon>
-					<Email :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Send link to calendar via email') }}
-			</NcActionButton>
-			<NcActionInput v-if="showEMailInput"
-				@submit.prevent.stop="sendLinkViaEMail">
-				<template #icon>
-					<Email :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Enter one address') }}
-			</NcActionInput>
-			<NcActionText v-if="showEMailSending"
-				icon="icon-loading-small">
-				<!-- eslint-disable-next-line no-irregular-whitespace -->
-				{{ $t('calendar', 'Sending email …') }}
-			</NcActionText>
+			<NcActions>
+				<NcActionButton v-if="showEMailLabel"
+					@click.prevent.stop="openEMailLinkInput">
+					<template #icon>
+						<Email :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Send link to calendar via email') }}
+				</NcActionButton>
+				<NcActionInput v-if="showEMailInput"
+					@submit.prevent.stop="sendLinkViaEMail">
+					<template #icon>
+						<Email :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Enter one address') }}
+				</NcActionInput>
+				<NcActionText v-if="showEMailSending"
+					icon="icon-loading-small">
+					<!-- eslint-disable-next-line no-irregular-whitespace -->
+					{{ $t('calendar', 'Sending email …') }}
+				</NcActionText>
 
-			<NcActionButton v-if="showCopySubscriptionLinkLabel"
-				@click.prevent.stop="copySubscriptionLink">
-				<template #icon>
-					<CalendarBlank :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Copy subscription link') }}
-			</NcActionButton>
-			<NcActionText v-if="showCopySubscriptionLinkSpinner"
-				icon="icon-loading-small">
-				<!-- eslint-disable-next-line no-irregular-whitespace -->
-				{{ $t('calendar', 'Copying link …') }}
-			</NcActionText>
-			<NcActionText v-if="showCopySubscriptionLinkSuccess">
-				<template #icon>
-					<CalendarBlank :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Copied link') }}
-			</NcActionText>
-			<NcActionText v-if="showCopySubscriptionLinkError">
-				<template #icon>
-					<CalendarBlank :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Could not copy link') }}
-			</NcActionText>
+				<NcActionButton v-if="showCopySubscriptionLinkLabel"
+					@click.prevent.stop="copySubscriptionLink">
+					<template #icon>
+						<CalendarBlank :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Copy subscription link') }}
+				</NcActionButton>
+				<NcActionText v-if="showCopySubscriptionLinkSpinner"
+					icon="icon-loading-small">
+					<!-- eslint-disable-next-line no-irregular-whitespace -->
+					{{ $t('calendar', 'Copying link …') }}
+				</NcActionText>
+				<NcActionText v-if="showCopySubscriptionLinkSuccess">
+					<template #icon>
+						<CalendarBlank :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Copied link') }}
+				</NcActionText>
+				<NcActionText v-if="showCopySubscriptionLinkError">
+					<template #icon>
+						<CalendarBlank :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Could not copy link') }}
+				</NcActionText>
 
-			<NcActionButton v-if="showCopyEmbedCodeLinkLabel"
-				@click.prevent.stop="copyEmbedCode">
-				<template #icon>
-					<CodeBrackets :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Copy embedding code') }}
-			</NcActionButton>
-			<NcActionText v-if="showCopyEmbedCodeLinkSpinner"
-				icon="icon-loading-small">
-				<!-- eslint-disable-next-line no-irregular-whitespace -->
-				{{ $t('calendar', 'Copying code …') }}
-			</NcActionText>
-			<NcActionText v-if="showCopyEmbedCodeLinkSuccess">
-				<template #icon>
-					<CodeBrackets :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Copied code') }}
-			</NcActionText>
-			<NcActionText v-if="showCopyEmbedCodeLinkError">
-				<template #icon>
-					<CodeBrackets :size="20" decorative />
-				</template>
-				{{ $t('calendar', 'Could not copy code') }}
-			</NcActionText>
+				<NcActionButton v-if="showCopyEmbedCodeLinkLabel"
+					@click.prevent.stop="copyEmbedCode">
+					<template #icon>
+						<CodeBrackets :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Copy embedding code') }}
+				</NcActionButton>
+				<NcActionText v-if="showCopyEmbedCodeLinkSpinner"
+					icon="icon-loading-small">
+					<!-- eslint-disable-next-line no-irregular-whitespace -->
+					{{ $t('calendar', 'Copying code …') }}
+				</NcActionText>
+				<NcActionText v-if="showCopyEmbedCodeLinkSuccess">
+					<template #icon>
+						<CodeBrackets :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Copied code') }}
+				</NcActionText>
+				<NcActionText v-if="showCopyEmbedCodeLinkError">
+					<template #icon>
+						<CodeBrackets :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Could not copy code') }}
+				</NcActionText>
 
-			<NcActionButton v-if="!unpublishingCalendar"
-				@click.prevent.stop="unpublishCalendar">
+				<NcActionButton v-if="!unpublishingCalendar"
+					@click.prevent.stop="unpublishCalendar">
+					<template #icon>
+						<Delete :size="20" decorative />
+					</template>
+					{{ $t('calendar', 'Delete share link') }}
+				</NcActionButton>
+				<NcActionText v-if="unpublishingCalendar"
+					icon="icon-loading-small">
+					<!-- eslint-disable-next-line no-irregular-whitespace -->
+					{{ $t('calendar', 'Deleting share link …') }}
+				</NcActionText>
+			</NcActions>
+		</template>
+		<NcActions v-else>
+			<NcActionButton aria-label="$t('calendar', 'Share link')"
+				:disabled="publishingCalendar"
+				@click.prevent.stop="publishCalendar">
 				<template #icon>
-					<Delete :size="20" decorative />
+					<PlusIcon :size="20" />
 				</template>
-				{{ $t('calendar', 'Delete share link') }}
 			</NcActionButton>
-			<NcActionText v-if="unpublishingCalendar"
-				icon="icon-loading-small">
-				<!-- eslint-disable-next-line no-irregular-whitespace -->
-				{{ $t('calendar', 'Deleting share link …') }}
-			</NcActionText>
 		</NcActions>
 	</div>
 </template>
@@ -141,7 +143,6 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput.js'
 import NcActionText from '@nextcloud/vue/dist/Components/NcActionText.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import ClickOutside from 'vue-click-outside'
 import {
 	generateRemoteUrl,
@@ -160,6 +161,7 @@ import CodeBrackets from 'vue-material-design-icons/CodeBrackets.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Email from 'vue-material-design-icons/Email.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
+import PlusIcon from 'vue-material-design-icons/Plus.vue'
 
 export default {
 	name: 'PublishCalendar',
@@ -168,13 +170,13 @@ export default {
 		NcActionButton,
 		NcActionInput,
 		NcActionText,
-		NcButton,
 		CalendarBlank,
 		ClipboardArrowLeftOutline,
 		CodeBrackets,
 		Delete,
 		Email,
 		LinkVariant,
+		PlusIcon,
 	},
 	directives: {
 		ClickOutside,
@@ -381,5 +383,21 @@ export default {
 .publish-calendar {
 	display: flex;
 	align-items: center;
+	gap: 10px;
+
+	&__icon {
+		display: flex;
+		width: 32px;
+		height: 32px;
+		border-radius: 16px;
+		color: white;
+		background-color: var(--color-primary);
+		align-items: center;
+		justify-content: center;
+	}
+
+	&__label {
+		flex: 1 auto;
+	}
 }
 </style>
