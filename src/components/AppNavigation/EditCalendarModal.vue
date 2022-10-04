@@ -21,19 +21,49 @@
   -->
 
 <template>
-	<NcModal v-if="!!editCalendarModal && calendar" size="small" @close="hideModal">
+	<NcModal v-if="!!editCalendarModal && calendar" size="normal" @close="saveAndClose">
 		<div class="edit-calendar-modal">
 			<h2>{{ $t('calendar', 'Edit calendar') }}</h2>
 
 			<div class="edit-calendar-modal__name-and-color">
 				<div class="edit-calendar-modal__name-and-color__color">
-					<NcColorPicker v-model="calendarColor">
+					<div v-if="loading"
+						class="edit-calendar-modal__name-and-color__color__dot"
+						:style="{'background-color': calendarColor}" />
+					<NcColorPicker v-else v-model="calendarColor">
 						<div class="edit-calendar-modal__name-and-color__color__dot"
 							:style="{'background-color': calendarColor}" />
 					</NcColorPicker>
 				</div>
 
-				<input v-model="calendarName" class="edit-calendar-modal__name-and-color__name" type="text">
+				<input v-model="calendarName"
+					class="edit-calendar-modal__name-and-color__name"
+					type="text"
+					:disabled="loading">
+			</div>
+
+			<!--<h2>Additional actions</h2>-->
+			<div class="edit-calendar-modal__additional-actions">
+				<NcButton type="primary" @click="copyPrivateLink">
+					<template #icon>
+						<LinkVariantIcon :size="20" />
+					</template>
+					{{ $t('calendar', 'Copy private link') }}
+				</NcButton>
+
+				<NcButton type="primary" @click="exportCalendar">
+					<template #icon>
+						<DownloadIcon :size="20" />
+					</template>
+					{{ $t('calendar', 'Export') }}
+				</NcButton>
+
+				<NcButton type="error" @click="deleteCalendar">
+					<template #icon>
+						<DeleteIcon :size="20" />
+					</template>
+					{{ $t('calendar', 'Delete') }}
+				</NcButton>
 			</div>
 
 			<h2 class="edit-calendar-modal__sharing-header">
@@ -49,11 +79,13 @@
 					:calendar="calendar" />
 			</div>
 
+			<!--
 			<div class="edit-calendar-modal__actions">
 				<NcButton type="primary" @click="saveAndClose">
 					{{ $t('calendar', 'Save') }}
 				</NcButton>
 			</div>
+			-->
 		</div>
 	</NcModal>
 </template>
@@ -66,7 +98,11 @@ import PublishCalendar from './EditCalendarModal/PublishCalendar'
 import SharingSearch from './EditCalendarModal/SharingSearch'
 import ShareItem from './EditCalendarModal/ShareItem'
 import { mapGetters } from 'vuex'
-import { randomId } from '../../utils/randomId'
+import logger from '../../utils/logger'
+import debounce from 'debounce'
+import LinkVariantIcon from 'vue-material-design-icons/LinkVariant.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 
 export default {
 	name: 'EditCalendarModal',
@@ -77,15 +113,19 @@ export default {
 		PublishCalendar,
 		SharingSearch,
 		ShareItem,
+		LinkVariantIcon,
+		DownloadIcon,
+		DeleteIcon,
 	},
 	props: {
 	},
 	data() {
 		return {
+			loading: false,
 			calendarColor: undefined,
+			calendarColorChanged: false,
 			calendarName: undefined,
-			calendarNameId: randomId(),
-			colorPickerId: randomId(),
+			calendarNameChanged: false,
 		}
 	},
 	computed: {
@@ -100,6 +140,12 @@ export default {
 		},
 	},
 	watch: {
+		async calendarColor() {
+			await this.saveColor()
+		},
+		async calendarName() {
+			await this.saveName()
+		},
 		editCalendarModal(value) {
 			if (!value) {
 				return
@@ -110,12 +156,93 @@ export default {
 		},
 	},
 	methods: {
-		hideModal() {
+		/**
+		 * Close the modal (without saving).
+		 */
+		closeModal() {
 			this.$store.commit('hideEditCalendarModal')
 		},
 
+		/**
+		 * Save the calendar color.
+		 */
+		async saveColor() {
+			this.loading = true
+
+			try {
+				await this.$store.dispatch('changeCalendarColor', {
+					calendar: this.calendar,
+					newColor: this.calendarColor,
+				})
+			} catch (error) {
+				logger.error('Failed to save calendar color', {
+					calendar: this.calendar,
+					newColor: this.calendarColor,
+				})
+			} finally {
+				this.loading = false
+			}
+		},
+		saveColorDebounced: debounce(() => this.saveColor(), 1000),
+
+		/**
+		 * Save the calendar name.
+		 */
+		async saveName() {
+			this.loading = true
+
+			try {
+				await this.$store.dispatch('renameCalendar', {
+					calendar: this.calendar,
+					newName: this.calendarName,
+				})
+			} catch (error) {
+				logger.error('Failed to save calendar name', {
+					calendar: this.calendar,
+					newName: this.calendarName,
+				})
+			} finally {
+				this.loading = false
+			}
+		},
+		saveNameDebounced: debounce(() => this.saveName(), 1000),
+
+		/**
+		 * Save unsaved changes and close the modal.
+		 *
+		 * @return {Promise<void>}
+		 */
 		async saveAndClose() {
-			this.hideModal()
+			await this.saveColor.flush()
+			await this.saveName.flush()
+			this.closeModal()
+		},
+
+		/**
+		 * Copy the internal/private link of this calendar to the clipboard.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async copyPrivateLink() {
+			// TODO
+		},
+
+		/**
+		 * Export the calendar as a download.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async exportCalendar() {
+			// TODO
+		},
+
+		/**
+		 * Delete the calendar.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async deleteCalendar() {
+			// TODO
 		},
 	},
 }
@@ -130,7 +257,7 @@ export default {
 	&__name-and-color {
 		display: flex;
 		align-items: center;
-		gap: 5px;
+		gap: 10px;
 		margin-bottom: 10px;
 
 		&__color {
@@ -146,29 +273,12 @@ export default {
 		}
 	}
 
-	&__name {
+	&__additional-actions {
 		display: flex;
-		flex-direction: column;
-		margin-bottom: 10px;
+		gap: 10px;
 
-		input {
-			width: 100%;
-		}
-	}
-
-	&__color {
-		display: flex;
-		flex-direction: column;
-
-		&__picker {
-			display: flex;
-			gap: 10px;
-
-			&__input,
-			::v-deep .v-popper,
-			::v-deep .trigger {
-				width: 100%;
-			}
+		button {
+			flex: 1 auto;
 		}
 	}
 

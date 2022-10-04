@@ -22,11 +22,10 @@
   -->
 
 <template>
-	<AppNavigationItem v-click-outside="closeShareMenu"
-		:loading="calendar.loading"
+	<AppNavigationItem :loading="calendar.loading"
 		:aria-description="descriptionAppNavigationItem"
 		:title="calendar.displayName || $t('calendar', 'Untitled calendar')"
-		:class="{deleted: !!deleteTimeout, disabled: !calendar.enabled, 'open-sharing': shareMenuOpen}"
+		:class="{deleted: !!deleteTimeout, disabled: !calendar.enabled}"
 		@click.prevent.stop="toggleEnabled">
 		<template #icon>
 			<CheckboxBlankCircle v-if="calendar.enabled"
@@ -37,53 +36,19 @@
 				:fill-color="calendar.color" />
 		</template>
 
+		<template #counter>
+			<NcAvatar v-if="isSharedWithMe && loadedOwnerPrincipal" :user="ownerUserId" :display-name="ownerDisplayname" />
+			<div v-if="isSharedWithMe && !loadedOwnerPrincipal" class="icon icon-loading" />
+		</template>
+
 		<template #actions>
 			<template v-if="!deleteTimeout">
 				<ActionButton @click.prevent.stop="showEditModal">
 					<template #icon>
 						<Pencil :size="20" decorative />
 					</template>
-					{{ $t('calendar', 'Edit calendar') }}
+					{{ $t('calendar', 'Edit and share calendar') }}
 				</ActionButton>
-				<ActionButton v-if="showRenameLabel"
-					@click.prevent.stop="openRenameInput">
-					<template #icon>
-						<Pencil :size="20" decorative />
-					</template>
-					{{ $t('calendar', 'Edit name') }}
-				</ActionButton>
-				<ActionInput v-if="showRenameInput"
-					:value="calendar.displayName"
-					@submit.prevent.stop="saveRenameInput">
-					<template #icon>
-						<Pencil :size="20" decorative />
-					</template>
-				</ActionInput>
-				<ActionText v-if="showRenameSaving"
-					icon="icon-loading-small">
-					<!-- eslint-disable-next-line no-irregular-whitespace -->
-					{{ $t('calendar', 'Saving name …') }}
-				</ActionText>
-				<ActionButton v-if="showColorLabel"
-					@click.prevent.stop="openColorInput">
-					<template #icon>
-						<Pencil :size="20" decorative />
-					</template>
-					{{ $t('calendar', 'Edit color') }}
-				</ActionButton>
-				<ActionInput v-if="showColorInput"
-					:value="calendar.color"
-					type="color"
-					@submit.prevent.stop="saveColorInput">
-					<template #icon>
-						<Pencil :size="20" decorative />
-					</template>
-				</ActionInput>
-				<ActionText v-if="showColorSaving"
-					icon="icon-loading-small">
-					<!-- eslint-disable-next-line no-irregular-whitespace -->
-					{{ $t('calendar', 'Saving color …') }}
-				</ActionText>
 				<ActionButton @click.stop.prevent="copyLink">
 					<template #icon>
 						<LinkVariant :size="20" decorative />
@@ -113,7 +78,7 @@
 				</ActionButton>
 			</template>
 
-			<template v-if="!!deleteTimeout">
+			<template v-if="deleteTimeout">
 				<ActionButton v-if="calendar.isSharedWithMe"
 					@click.prevent.stop="cancelDeleteCalendar">
 					<template #icon>
@@ -134,14 +99,11 @@
 </template>
 
 <script>
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import ActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import ActionInput from '@nextcloud/vue/dist/Components/NcActionInput.js'
 import ActionLink from '@nextcloud/vue/dist/Components/NcActionLink.js'
-import ActionText from '@nextcloud/vue/dist/Components/NcActionText.js'
 import AppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
-import ClickOutside from 'vue-click-outside'
 import {
-	showInfo,
 	showSuccess,
 	showError,
 } from '@nextcloud/dialogs'
@@ -161,10 +123,9 @@ import Undo from 'vue-material-design-icons/Undo.vue'
 export default {
 	name: 'CalendarListItem',
 	components: {
+		NcAvatar,
 		ActionButton,
-		ActionInput,
 		ActionLink,
-		ActionText,
 		AppNavigationItem,
 		CheckboxBlankCircle,
 		CheckboxBlankCircleOutline,
@@ -175,9 +136,6 @@ export default {
 		Pencil,
 		Undo,
 	},
-	directives: {
-		ClickOutside,
-	},
 	props: {
 		calendar: {
 			type: Object,
@@ -186,14 +144,6 @@ export default {
 	},
 	data() {
 		return {
-			// Rename action
-			showRenameLabel: true,
-			showRenameInput: false,
-			showRenameSaving: false,
-			// Color action
-			showColorLabel: true,
-			showColorInput: false,
-			showColorSaving: false,
 			// share menu
 			shareMenuOpen: false,
 			// Deleting
@@ -318,6 +268,7 @@ export default {
 					console.error(error)
 				})
 		},
+
 		/**
 		 * Deletes or unshares the calendar
 		 */
@@ -343,6 +294,7 @@ export default {
 				}
 			}, 7000)
 		},
+
 		/**
 		 * Cancels the deletion of a calendar
 		 */
@@ -353,36 +305,7 @@ export default {
 			this.deleteInterval = null
 			this.countdown = 7
 		},
-		/**
-		 * Closes the share menu
-		 * This is used with v-click-outside
-		 *
-		 * @param {Event} event The javascript click event
-		 */
-		closeShareMenu(event) {
-			if (!event.isTrusted) {
-				return
-			}
 
-			if (this.$el.contains(event.target)) {
-				this.shareMenuOpen = true
-				return
-			}
-
-			if (event.composedPath && event.composedPath().includes(this.$el)) {
-				this.shareMenuOpen = true
-				return
-			}
-
-			this.shareMenuOpen = false
-		},
-		/**
-		 * Toggles the visibility of the share menu
-		 */
-		toggleShareMenu() {
-			this.shareMenuOpen = !this.shareMenuOpen
-			console.debug('toggled share menu')
-		},
 		/**
 		 * Copies the private calendar link
 		 * to be used with clients like Thunderbird
@@ -401,87 +324,10 @@ export default {
 				showError(this.$t('calendar', 'Calendar link could not be copied to clipboard.'))
 			}
 		},
+
 		/**
-		 * Opens the input-field to rename the calendar
+		 * Open the calendar modal for this calendar item.
 		 */
-		openRenameInput() {
-			// Hide label and show input
-			this.showRenameLabel = false
-			this.showRenameInput = true
-			this.showRenameSaving = false
-			// Reset color input if necessary
-			this.showColorLabel = true
-			this.showColorInput = false
-			this.showColorSaving = false
-		},
-		/**
-		 * Saves the modified name of a calendar
-		 *
-		 * @param {Event} event The submit event
-		 */
-		async saveRenameInput(event) {
-			this.showRenameInput = false
-			this.showRenameSaving = true
-
-			const newName = event.target.querySelector('input[type=text]').value
-			try {
-				await this.$store.dispatch('renameCalendar', {
-					calendar: this.calendar,
-					newName,
-				})
-				this.showRenameLabel = true
-				this.showRenameInput = false
-				this.showRenameSaving = false
-			} catch (error) {
-				showInfo(this.$t('calendar', 'An error occurred, unable to rename the calendar.'))
-				console.error(error)
-
-				this.showRenameLabel = false
-				this.showRenameInput = true
-				this.showRenameSaving = false
-			}
-		},
-		/**
-		 * Opens the color-picker
-		 */
-		openColorInput() {
-			// Hide label and show input
-			this.showColorLabel = false
-			this.showColorInput = true
-			this.showColorSaving = false
-			// Reset rename input if necessary
-			this.showRenameLabel = true
-			this.showRenameInput = false
-			this.showRenameSaving = false
-		},
-		/**
-		 * Saves the modified color of a calendar
-		 *
-		 * @param {Event} event The submit event
-		 */
-		async saveColorInput(event) {
-			this.showColorInput = false
-			this.showColorSaving = true
-
-			const newColor = event.target.querySelector('input[type=color]').value
-			try {
-				await this.$store.dispatch('changeCalendarColor', {
-					calendar: this.calendar,
-					newColor,
-				})
-				this.showColorLabel = true
-				this.showColorInput = false
-				this.showColorSaving = false
-			} catch (error) {
-				showInfo(this.$t('calendar', 'An error occurred, unable to change the calendar\'s color.'))
-				console.error(error)
-
-				this.showColorLabel = false
-				this.showColorInput = true
-				this.showColorSaving = false
-			}
-		},
-
 		showEditModal() {
 			this.$store.commit('showEditCalendarModal', {
 				calendarId: this.calendar.id,
