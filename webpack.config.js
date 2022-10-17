@@ -29,13 +29,13 @@ module.exports = {
 	entry: {
 		main: path.resolve(path.join('src', 'main.js')),
 		// Add dashboard entry
-        dashboard: path.join(__dirname, 'src', 'dashboard.js'),
+    //    dashboard: path.join(__dirname, 'src', 'dashboard.js'),
 
 		// Add appointments entries,
-		appointmentsbooking: path.join(__dirname, 'src', 'appointments/main-booking.js'),
-		appointmentsconfirmation: path.join(__dirname, 'src', 'appointments/main-confirmation.js'),
-		appointmentsconflict: path.join(__dirname, 'src', 'appointments/main-conflict.js'),
-		appointmentsoverview : path.join(__dirname, 'src', 'appointments/main-overview.js'),
+		//appointmentsbooking: path.join(__dirname, 'src', 'appointments/main-booking.js'),
+		//appointmentsconfirmation: path.join(__dirname, 'src', 'appointments/main-confirmation.js'),
+		//appointmentsconflict: path.join(__dirname, 'src', 'appointments/main-conflict.js'),
+		//appointmentsoverview : path.join(__dirname, 'src', 'appointments/main-overview.js'),
 	},
 	output: {
 		path: path.resolve('./js'),

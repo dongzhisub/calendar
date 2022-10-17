@@ -2,7 +2,7 @@ window.t= function translate(app, text, vars, count, options) {
   return text;
 };
 window.OC={
-//webroots:"/",
+webroot:"/",
 isUserAdmin: function isUserAdmin() {return false},
 L10N: {
 	translate: t,
